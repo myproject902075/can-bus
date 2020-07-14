@@ -1,0 +1,56 @@
+
+#include <CAN.h>
+#include <OBD2.h>
+
+int outputPin_1 = 3;
+int outputPin_2 = 4;
+int pid_spd = 10;
+void setup() {
+  pinMode(outputPin_1,OUTPUT);
+  pinMode(outputPin_2,OUTPUT);
+  Serial.begin(9600);
+  while (!Serial);
+
+  Serial.println(F("OBD2 data printer"));
+
+  while (true) {
+    Serial.print(F("Attempting to connect to OBD2 CAN bus ... "));
+
+    if (!OBD2.begin()) {
+      Serial.println(F("failed!"));
+
+      delay(1000);
+    } else {
+      Serial.println(F("success"));
+      break;
+    }
+  }
+
+  Serial.println();
+  Serial.print("VIN = ");
+  Serial.println(OBD2.vinRead());
+  Serial.print("ECU Name = ");
+  Serial.println(OBD2.ecuNameRead());
+  Serial.println();
+}
+
+void loop() {
+  float pidValue = OBD2.pidRead(pid_spd);
+  Serial.print("Vehicle Speed: ");
+  Serial.print(pidValue);
+  Serial.print(F(" "));
+  Serial.print(OBD2.pidUnits(pid_spd));
+  if(pidValue > 20){
+    digitalWrite(outputPin_1,HIGH);
+    digitalWrite(outputPin_2,LOW);
+    Serial.print("\t Activate Pin 1");
+  }
+  else{
+    digitalWrite(outputPin_1,LOW);
+    digitalWrite(outputPin_2,HIGH);
+    Serial.print("\t Activate Pin 2");
+  }
+  Serial.print("\t ON");
+  Serial.println();
+  delay(1000);
+}
